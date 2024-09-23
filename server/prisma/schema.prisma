@@ -17,7 +17,5 @@ model Url{
   id  Int @id @default(autoincrement())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  shortUrl String @unique
-  longUrl String  
-  accessCount Int @default(0)
+  longUrl String @unique
 }
