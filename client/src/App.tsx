@@ -1,16 +1,13 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import HomePage from "./pages/HomePage";
+import UrlAnalytics from "./pages/UrlAnalytics";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    errorElement: (
-      <>
-        <p>ERROR</p>
-      </>
-    ),
     element: <HomePage />,
   },
+  { path: "/analytics", element: <UrlAnalytics /> },
 ]);
 
 export default function App() {
