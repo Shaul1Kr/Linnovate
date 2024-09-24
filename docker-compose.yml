@@ -1,0 +1,41 @@
+services:
+  app:
+    build: ./server
+    ports:
+      - 3000:3000
+    env_file:
+      - ./server/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && ts-node src/index.ts"
+
+  db:
+    image: postgres:16.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: postgres
+    ports:
+      - 5431:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ./client
+    ports:
+      - "5173:5173"
+    environment:
+      NODE_ENV: production
+    command: npm run dev
+    depends_on:
+      - app
+
+volumes:
+  db-data:

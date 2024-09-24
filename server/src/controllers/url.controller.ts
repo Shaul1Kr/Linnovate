@@ -15,8 +15,7 @@ export const createShortUrl = async (req: Request, res: Response) => {
     if (!longUrl) {
       return res.status(400).json({ error: "longUrl is required" });
     }
-    const { protocol, baseUrl, headers } = req;
-    const { host } = headers;
+    const { protocol } = req;
 
     // Set expiration to one day from now
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours in milliseconds
@@ -34,7 +33,7 @@ export const createShortUrl = async (req: Request, res: Response) => {
     // Send response with the newly created short URL
     return res.status(201).json({
       longUrl,
-      shortUrl: `${protocol}://${host}${baseUrl}/${shortUrl}`,
+      shortUrl: `${protocol}://localhost:3000/${shortUrl}`,
     });
   } catch (error) {
     console.error("Error creating short URL:", error);

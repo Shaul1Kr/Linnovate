@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "docker": "docker build . -t  \"linnovate\" && docker run -p 3000:3000 linnovate",
     "lint": "eslint .",
     "preview": "vite preview"
   },
