@@ -65,14 +65,57 @@ export const redirectToLongUrl = async (req: Request, res: Response) => {
         .status(404)
         .sendFile(path.resolve(__dirname, "../error/404.html"));
     }
+    // Create analytics for this URL
+    await prisma.analytics.create({
+      data: {
+        urlId: urlEntry.id,
+      },
+    });
 
     // Redirect the user to the long URL
-
     return res.redirect(urlEntry.longUrl);
   } catch (error) {
     console.error("Error during redirection:", error);
     return res
       .status(500)
       .json({ error: "An error occurred while redirecting to the long URL" });
+  }
+};
+
+export const getUrlAnalytics = async (req: Request, res: Response) => {
+  try {
+    const analyticsData = await prisma.analytics.groupBy({
+      by: ["urlId"], // Group by urlId
+      _count: {
+        urlId: true, // Count the number of entries per urlId
+      },
+      _max: {
+        createdAt: true, // Get the latest createdAt timestamp
+      },
+    });
+
+    // Map the results to include longUrl
+    const responseData = await Promise.all(
+      analyticsData.map(async (entry) => {
+        const url = await prisma.url.findUnique({
+          where: { id: entry.urlId },
+          select: { longUrl: true }, // Only select longUrl
+        });
+
+        return {
+          urlId: entry.urlId,
+          longUrl: url?.longUrl,
+          totalAccesses: entry._count.urlId,
+          lastAccessed: entry._max.createdAt,
+        };
+      })
+    );
+
+    return res.status(200).json(responseData);
+  } catch (error) {
+    console.error("Error retrieving URL analytics:", error);
+    return res
+      .status(500)
+      .json({ error: "An error occurred while retrieving URL analytics" });
   }
 };
