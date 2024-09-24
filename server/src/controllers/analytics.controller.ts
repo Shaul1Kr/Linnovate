@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "..";
 
 export const getUrlAnalytics = async (req: Request, res: Response) => {
+  console.info("Fatching analytics");
   try {
     const urls = await prisma.url.findMany({
       select: {
