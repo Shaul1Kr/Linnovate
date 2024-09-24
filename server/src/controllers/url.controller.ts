@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "..";
 import { decode, encode } from "../utils/urlService";
+import { CronJob } from "cron";
 import path from "path";
 
 const urlCache = new Map<string, string>();
@@ -16,10 +17,14 @@ export const createShortUrl = async (req: Request, res: Response) => {
     }
     const { protocol, baseUrl, headers } = req;
     const { host } = headers;
+
+    // Set expiration to one day from now
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours in milliseconds
+
     const longUrlData = await prisma.url.upsert({
       where: { longUrl },
       update: {},
-      create: { longUrl },
+      create: { longUrl, expiresAt },
     });
     const shortUrl = encode(longUrlData.id);
 
@@ -89,3 +94,37 @@ export const redirectToLongUrl = async (req: Request, res: Response) => {
       .json({ error: "An error occurred while redirecting to the long URL" });
   }
 };
+
+const cleanupExpiredUrls = new CronJob("0 * * * *", async () => {
+  try {
+    // Fetch expired URLs to remove from both the database and cache
+    const expiredUrls = await prisma.url.findMany({
+      where: {
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
+    });
+
+    // Remove expired URLs from the cache
+    expiredUrls.forEach((url) => {
+      const shortUrl = encode(url.id);
+      urlCache.delete(shortUrl);
+    });
+
+    // Delete expired URLs from the database
+    const result = await prisma.url.deleteMany({
+      where: {
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
+    });
+
+    console.log(`${result.count} expired URLs removed from the database.`);
+  } catch (error) {
+    console.error("Error cleaning up expired URLs:", error);
+  }
+});
+
+cleanupExpiredUrls.start();
