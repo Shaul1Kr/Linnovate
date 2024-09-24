@@ -22,13 +22,15 @@ export const getUrlAnalytics = async (req: Request, res: Response) => {
     });
 
     // Format the response
-    const result = urls.map((url) => ({
-      urlId: url.id,
-      longUrl: url.longUrl,
-      totalAccesses: url._count.Analytics, // Total accesses (count of analytics)
-      lastAccessed:
-        url.Analytics.length > 0 ? url.Analytics[0].createdAt : "Never", // If no access, return 'Never'
-    }));
+    const result = urls
+      .map((url) => ({
+        id: url.id,
+        longUrl: url.longUrl,
+        totalAccesses: url._count.Analytics,
+        lastAccessed:
+          url.Analytics.length > 0 ? url.Analytics[0].createdAt : "Never", // If no access, return 'Never'
+      }))
+      .sort((a, b) => b.totalAccesses - a.totalAccesses);
 
     return res.status(200).json(result);
   } catch (error) {
