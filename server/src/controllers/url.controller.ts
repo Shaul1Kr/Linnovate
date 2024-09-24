@@ -3,6 +3,8 @@ import { prisma } from "..";
 import { decode, encode } from "../utils/urlService";
 import path from "path";
 
+const urlCache = new Map<string, string>();
+
 export const createShortUrl = async (req: Request, res: Response) => {
   try {
     const { longUrl } = req.body as { longUrl: string };
@@ -20,6 +22,9 @@ export const createShortUrl = async (req: Request, res: Response) => {
       create: { longUrl },
     });
     const shortUrl = encode(longUrlData.id);
+
+    // Cache the newly created short URL and its corresponding long URL
+    urlCache.set(shortUrl, longUrl);
 
     // Send response with the newly created short URL
     return res.status(201).json({
@@ -39,6 +44,10 @@ export const redirectToLongUrl = async (req: Request, res: Response) => {
     const { shortUrl } = req.params;
     console.info(`Redirect to long url ${shortUrl}`);
 
+    if (urlCache.has(shortUrl)) {
+      console.info("Cache hit. Redirecting to long URL");
+      return res.redirect(urlCache.get(shortUrl)!); // Redirect to cached long URL
+    }
     // Find the URL entry in the database using the shortUrl
     const id = decode(shortUrl);
     if (id > 2147483647)
