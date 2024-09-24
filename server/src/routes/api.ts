@@ -1,7 +1,10 @@
 import express from "express";
-import url from "./url";
+import urlRouter from "./url";
+import analyticsRouter from "./analytics";
 const router = express.Router();
 
-router.use(url);
+router.use("/analytics", analyticsRouter);
+
+router.use("/", urlRouter);
 
 export default router;

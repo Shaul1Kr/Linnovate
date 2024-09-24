@@ -84,34 +84,34 @@ export const redirectToLongUrl = async (req: Request, res: Response) => {
 
 export const getUrlAnalytics = async (req: Request, res: Response) => {
   try {
-    const analyticsData = await prisma.analytics.groupBy({
-      by: ["urlId"], // Group by urlId
-      _count: {
-        urlId: true, // Count the number of entries per urlId
-      },
-      _max: {
-        createdAt: true, // Get the latest createdAt timestamp
+    const urls = await prisma.url.findMany({
+      select: {
+        id: true,
+        longUrl: true,
+        _count: {
+          select: {
+            Analytics: true,
+          },
+        },
+        Analytics: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+        },
       },
     });
 
-    // Map the results to include longUrl
-    const responseData = await Promise.all(
-      analyticsData.map(async (entry) => {
-        const url = await prisma.url.findUnique({
-          where: { id: entry.urlId },
-          select: { longUrl: true }, // Only select longUrl
-        });
+    // Format the response
+    const result = urls.map((url) => ({
+      urlId: url.id,
+      longUrl: url.longUrl,
+      totalAccesses: url._count.Analytics, // Total accesses (count of analytics)
+      lastAccessed:
+        url.Analytics.length > 0 ? url.Analytics[0].createdAt : "Never", // If no access, return 'Never'
+    }));
 
-        return {
-          urlId: entry.urlId,
-          longUrl: url?.longUrl,
-          totalAccesses: entry._count.urlId,
-          lastAccessed: entry._max.createdAt,
-        };
-      })
-    );
-
-    return res.status(200).json(responseData);
+    return res.status(200).json(result);
   } catch (error) {
     console.error("Error retrieving URL analytics:", error);
     return res
