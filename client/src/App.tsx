@@ -1,16 +1,15 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import RedirectPage from "./pages/RedirectPage";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    errorElement: <></>,
+    errorElement: (
+      <>
+        <p>ERROR</p>
+      </>
+    ),
     element: <HomePage />,
-  },
-  {
-    path: "/:shortUrl",
-    element: <RedirectPage />,
   },
 ]);
 

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "..";
 import { decode, encode } from "../utils/urlService";
+import path from "path";
 
 export const createShortUrl = async (req: Request, res: Response) => {
   try {
@@ -19,9 +20,6 @@ export const createShortUrl = async (req: Request, res: Response) => {
       create: { longUrl },
     });
     const shortUrl = encode(longUrlData.id);
-    // Generate or retrieve the short URL
-
-    console.log(req.baseUrl);
 
     // Send response with the newly created short URL
     return res.status(201).json({
@@ -39,17 +37,24 @@ export const createShortUrl = async (req: Request, res: Response) => {
 export const redirectToLongUrl = async (req: Request, res: Response) => {
   try {
     const { shortUrl } = req.params;
-    console.info("Redirect to long url");
+    console.info(`Redirect to long url ${shortUrl}`);
 
     // Find the URL entry in the database using the shortUrl
     const id = decode(shortUrl);
+    if (id > 2147483647)
+      return res
+        .status(404)
+        .sendFile(path.resolve(__dirname, "../error/404.html"));
+
     const urlEntry = await prisma.url.findUnique({
       where: { id },
     });
 
     // If the short URL does not exist, return a 404 error
     if (!urlEntry) {
-      return res.status(404).json({ error: "Short URL not found" });
+      return res
+        .status(404)
+        .sendFile(path.resolve(__dirname, "../error/404.html"));
     }
 
     // Redirect the user to the long URL
