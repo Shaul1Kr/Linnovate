@@ -46,6 +46,14 @@ export const redirectToLongUrl = async (req: Request, res: Response) => {
 
     if (urlCache.has(shortUrl)) {
       console.info("Cache hit. Redirecting to long URL");
+      const urlData = await prisma.url.findFirst({
+        where: { longUrl: urlCache.get(shortUrl)! },
+      });
+      await prisma.analytics.create({
+        data: {
+          urlId: urlData.id,
+        },
+      });
       return res.redirect(urlCache.get(shortUrl)!); // Redirect to cached long URL
     }
     // Find the URL entry in the database using the shortUrl
