@@ -19,6 +19,8 @@
 
 This project is a **URL Shortener** service. It allows users to generate short links for long URLs and track visits to those links. The application is built with **React**, **Node.js**, and **PostgreSQL**, using **Prisma ORM** for database management. It also includes analytics for tracking URL usage and interaction, along with a proxy configuration to manage API requests from the frontend.
 
+For a detailed overview of the architecture and design choices, please refer to the [Design Document](./DESIGN.md).
+
 ## Features
 
 - Shorten long URLs.
