@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from "..";
-import { decode, encode } from "../utils/urlService";
+import { decode, encode } from "../utils/shortener";
 import { CronJob } from "cron";
 import path from "path";
 
